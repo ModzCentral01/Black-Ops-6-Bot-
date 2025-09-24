@@ -1,64 +1,71 @@
-# 🎮 BO6 Bot Lobby Tool  
+# 🐍 BO6 Bot Lobby Tool  
 
 ![Status](https://img.shields.io/badge/Status-Coming%20Soon-blueviolet?style=for-the-badge)  
 ![Platform](https://img.shields.io/badge/Platform-Xbox%20Cloud%20Gaming-green?style=for-the-badge)  
+![Language](https://img.shields.io/badge/Language-Python-yellow?style=for-the-badge)  
 ![Free](https://img.shields.io/badge/Price-Free-brightgreen?style=for-the-badge)  
 
 ---
 
-## 🚀 Overview  
-Welcome to the **BO6 Bot Lobby Tool** 🎉  
+## 🎮 About This Tool  
+Welcome to the **BO6 Bot Lobby Tool** — a **Python-powered** bot lobby manager for Xbox Cloud Gaming!  
+It’s been running smoothly since **November** and is now being prepared for release.  
 
-This is my old project that has been running smoothly since **November**.  
-The UI is in **French 🇫🇷**, but don’t worry — it’s simple and mostly self-explanatory.  
+💡 **Fun fact:** The interface is in **French 🇫🇷**, but it’s super intuitive!  
 
-⚠️ *Heads up*: Xbox Cloud updates may sometimes affect functionality.  
+⚠️ *Heads up*: Xbox Cloud updates may affect functionality sometimes.  
 
 ---
 
-## 📥 Download  
-🔗 Grab it here: Conming soon
----
-
-## 🛠️ Requirements  
-- Xbox accounts with **Xbox Game Pass Ultimate**  
+## 🐍 Requirements  
+- Python 3.x  
+- Xbox accounts with **Game Pass Ultimate**  
 - Windows PC 💻  
 - Chrome Browser 🌐  
 
 ---
 
-## 🎯 Quick Setup (Fun Version)  
-1️⃣ Launch the tool 🖥️  
-2️⃣ Choose the number of Chrome views (1 view = 1 Xbox account)  
+## 🚀 Quick Setup (Coming Soon)  
+1️⃣ Launch the Python tool 🖥️  
+2️⃣ Pick the number of Chrome views (1 view = 1 Xbox account)  
 3️⃣ Login to Xbox Cloud per view 🎮  
 4️⃣ Select a mode (Multiplayer / Warzone / Ranked)  
-5️⃣ Link your bots to the host 👾  
+5️⃣ Link bots to the host 👾  
 6️⃣ Start matchmaking 🕹️  
-7️⃣ Inside the game, enable **“Mouvement Aléatoire”** → your anti-AFK buddy 🌀  
+7️⃣ Enable **“Mouvement Aléatoire”** in-game → anti-AFK magic 🌀  
+
+> ⚡ Detailed setup instructions will be available soon!  
 
 ---
 
-## ✨ Features  
+## ✨ Features (Coming Soon)  
 - 💤 Anti-AFK Macro → keeps bots alive in matches  
-- 🌍 Built-in VPN → region swap for better lobbies  
-- 📶 Video Bitrate Selector → tweak bandwidth usage  
+- 🌍 Built-in VPN → region swap for easier lobbies  
+- 📶 Video Bitrate Selector → optimize bandwidth  
 - 🎮 Supports Multiplayer, Warzone & Ranked  
-- 🎹 Sync Panel → control all bots from your keyboard  
-- 🖱️ Choose which bots receive inputs  
+- 🎹 Sync Panel → control all bots with your keyboard  
+- 🖱️ Choose which bots get macros & inputs  
 - 🧊 Ultra **low CPU usage**  
 
 ---
 
 ## 📸 Screenshots  
-✨ **Coming soon... stay tuned!**  
+✨ **Coming soon… stay tuned!**  
 
 ---
 
 ## ⚠️ Disclaimer  
-This tool is shared **for free** and provided *as-is*.  
-Use at your own risk ⚡ — updates or bans are always a possibility.  
+This tool is shared **for free** and provided **as-is**.  
+Use responsibly ⚡ — Xbox/Activision updates may affect functionality, and bans are possible.  
 
 ---
 
-## 💡 Final Note  
-If you found this helpful, don’t forget to ⭐
+## 💡 Pro Tip  
+⭐ Star the repo and follow for updates — the full Python tool is **coming soon**!  
+
+---
+
+## 🖌️ Sneak Peek (Python Vibe)
+```python
+# Just a little Python magic to kick things off
+print("🚀 BO6 Bot Lobby Tool is launching... Stay tuned! 🐍")
