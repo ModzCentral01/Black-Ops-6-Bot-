@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #0f0f0f;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .control-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to right, #881337, #b91c1c);
+      height: 30px;
+      color: white;
+      padding: 0 10px;
+      user-select: none;
+    }
+    
+    .title {
+      font-weight: bold;
+      font-size: 14px;
+    }
+    
+    #macro-container {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .macro-btn {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: none;
+      color: white;
+      padding: 3px 8px;
+      font-size: 12px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    
+    .macro-btn:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .macro-btn.active {
+      background-color: #22c55e;
+    }
+    
+    .panel-btn {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: none;
+      color: white;
+      padding: 3px 8px;
+      font-size: 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    
+    .panel-btn:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Random movements macro configuration
+      const macro = { id: 'macro4', label: 'Random Movements', shortcut: 'ALT+M' };
+      
+      // Explicitly define game mode
+      const gameMode = 'warzone';
+      
+      const macroContainer = document.getElementById('macro-container');
+      
+      // Create macro button
+      const btn = document.createElement('button');
+      btn.id = macro.id;
+      btn.className = 'macro-btn';
+      btn.textContent = `${macro.label} (${macro.shortcut})`;
+      
+      btn.addEventListener('click', () => {
+        // Toggle active/inactive state
+        btn.classList.toggle('active');
+        const isActive = btn.classList.contains('active');
+        
+        // Send message to main process to execute or stop macro
+        if (window.macroAPI) {
+          window.macroAPI.executeMacro(macro.id, gameMode);
+        }
+      });
+      
+      macroContainer.appendChild(btn);
+      
+      // Add button to open macro panel
+      const macroPanelBtn = document.createElement('button');
+      macroPanelBtn.className = 'panel-btn';
+      macroPanelBtn.textContent = 'Macro Panel';
+      macroPanelBtn.title = 'Open macro panel';
+      
+      macroPanelBtn.addEventListener('click', () => {
+        if (window.macroAPI) {
+          window.macroAPI.openMacroPanel(gameMode);
+        }
+      });
+      
+      macroContainer.appendChild(macroPanelBtn);
+      
+      // Add button to open synchronization panel
+      const syncPanelBtn = document.createElement('button');
+      syncPanelBtn.className = 'panel-btn';
+      syncPanelBtn.textContent = 'Sync Panel';
+      syncPanelBtn.title = 'Open synchronization panel';
+      
+      syncPanelBtn.addEventListener('click', () => {
+        if (window.macroAPI) {
+          window.macroAPI.openSyncPanel();
+        }
+      });
+      
+      macroContainer.appendChild(syncPanelBtn);
+      
+      // Add button to open settings
+      const settingsBtn = document.createElement('button');
+      settingsBtn.className = 'panel-btn';
+      settingsBtn.textContent = 'Settings';
+      settingsBtn.title = 'Open server settings';
+      
+      settingsBtn.addEventListener('click', () => {
+        if (window.macroAPI) {
+          window.macroAPI.openSettings();
+        }
+      });
+      
+      macroContainer.appendChild(settingsBtn);
+      
+      // Listen for macro status updates
+      if (window.macroAPI && window.macroAPI.onMacroStatus) {
+        window.macroAPI.onMacroStatus((status) => {
+          // Update button visual state based on status
+          if (status.macroId === 'macro4') {
+            const btn = document.getElementById('macro4');
+            if (btn) {
+              if (status.running === false) {
+                btn.classList.remove('active');
+              } else if (status.running === true) {
+                btn.classList.add('active');
+              }
+            }
+          }
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="control-bar">
+    <div class="title">Warzone Controls</div>
+    <div id="macro-container"></div>
+  </div>
+</body>
+</html> 

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vérification de Licence</title>
+  <style>
+    :root {
+      --primary-color: #3a5ca8;
+      --primary-hover: #2a4682;
+      --primary-light: #eef2fa;
+      --success-color: #2ecc71;
+      --success-hover: #27ae60;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --danger-hover: #c0392b;
+      --light-color: #f8f9fa;
+      --light-gray: #e9ecef;
+      --medium-gray: #adb5bd;
+      --dark-color: #2c3e50;
+      --border-radius: 6px;
+      --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+      --box-shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.12);
+      --transition: all 0.25s ease-in-out;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, sans-serif;
+      line-height: 1.6;
+      color: var(--dark-color);
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8edf5 100%);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .container {
+      max-width: 750px;
+      margin: 0 auto;
+      padding: 30px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 35px;
+      padding: 25px 0;
+      background: linear-gradient(135deg, var(--primary-color) 0%, #4a6da7 100%);
+      color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    
+    h1 {
+      font-size: 30px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: var(--border-radius);
+      padding: 35px;
+      box-shadow: var(--box-shadow);
+      margin-bottom: 25px;
+      transition: var(--transition);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .card:hover {
+      box-shadow: var(--box-shadow-hover);
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--dark-color);
+      font-size: 15px;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      border: 1px solid #dde0e5;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      background-color: #fcfcfd;
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(58, 92, 168, 0.15);
+      background-color: white;
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    }
+    
+    .btn-block {
+      display: block;
+      width: 100%;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      margin-top: 10px;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+
+    .btn-success {
+      background-color: var(--success-color);
+    }
+    
+    .btn-success:hover {
+      background-color: var(--success-hover);
+    }
+
+    .btn-danger {
+      background-color: var(--danger-color);
+    }
+    
+    .btn-danger:hover {
+      background-color: var(--danger-hover);
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .btn-group .btn {
+      flex: 1;
+    }
+    
+    .result {
+      text-align: center;
+      padding: 30px;
+      border-radius: var(--border-radius);
+      display: none;
+      margin-top: 25px;
+      transition: var(--transition);
+      box-shadow: var(--box-shadow);
+    }
+    
+    .result.valid {
+      background-color: #e9f8f1;
+      border: 1px solid #bedacc;
+      color: #196642;
+    }
+    
+    .result.invalid {
+      background-color: #fdf3f2;
+      border: 1px solid #f0c4c0;
+      color: #9e2f23;
+    }
+    
+    .result.warning {
+      background-color: #fff8e1;
+      border: 1px solid #ffe9a8;
+      color: #856404;
+    }
+    
+    .result-icon {
+      font-size: 54px;
+      margin-bottom: 15px;
+      opacity: 0.9;
+    }
+    
+    .license-info {
+      margin-top: 24px;
+      padding: 18px;
+      background-color: var(--light-color);
+      border-radius: var(--border-radius);
+      font-size: 15px;
+      border: 1px solid var(--light-gray);
+    }
+    
+    .license-info p {
+      margin-bottom: 10px;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(58, 92, 168, 0.15);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s cubic-bezier(0.4, 0.1, 0.3, 1) infinite;
+      margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 25px 0;
+      color: var(--medium-gray);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .license-key-display {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-weight: 600;
+      font-size: 16px;
+      margin-top: 12px;
+      background-color: #f7f9fb;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #e3e8ed;
+    }
+
+    .saved-license-notification {
+      background-color: #e7f3fd;
+      border: 1px solid #c3d8f0;
+      color: #144a85;
+      padding: 18px;
+      margin-bottom: 24px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .action-buttons .btn {
+      flex: 1;
+    }
+
+    .license-question {
+      margin-top: 28px;
+      padding: 20px;
+      background-color: #f4f7fa;
+      border-radius: var(--border-radius);
+      text-align: center;
+      border: 1px solid #e1e8ef;
+    }
+
+    .license-question h3 {
+      margin-bottom: 15px;
+      color: var(--dark-color);
+      font-weight: 600;
+    }
+    
+    h2 {
+      margin-bottom: 10px;
+      font-size: 24px;
+      color: inherit;
+      font-weight: 600;
+    }
+    
+    p {
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    
+    /* Animation pour les transitions entre les états */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .result[style*="display: block"] {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Vérification de Licence</h1>
+      <p>Veuillez entrer votre clé de licence pour continuer</p>
+    </div>
+    
+    <div class="card" id="license-form">
+      <div id="saved-license-notification" class="saved-license-notification" style="display: none;">
+        <p>Une licence est déjà enregistrée: <span id="saved-license-display"></span></p>
+        <div class="action-buttons">
+          <button id="useSavedBtn" class="btn">Utiliser cette licence</button>
+          <button id="enterNewBtn" class="btn btn-secondary">Entrer une nouvelle licence</button>
+        </div>
+      </div>
+      
+      <div id="license-input-form">
+        <div class="form-group">
+          <label for="licenseKey">Clé de Licence</label>
+          <input type="text" id="licenseKey" class="form-control" placeholder="Entrez votre clé de licence">
+        </div>
+        <button id="validateBtn" class="btn btn-block">Valider la Licence</button>
+      </div>
+    </div>
+    
+    <div id="checking-result" class="result" style="display: none;">
+      <div class="spinner"></div>
+      <p>Vérification de votre licence...</p>
+    </div>
+    
+    <div id="valid-result" class="result valid" style="display: none;">
+      <div class="result-icon">✓</div>
+      <h2>Licence Valide</h2>
+      <p>Votre licence a été validée avec succès.</p>
+      
+      <div class="license-info">
+        <div class="license-key-display">
+          <p><strong>Clé de licence:</strong> <span id="license-key-display"></span></p>
+        </div>
+        <div id="expiration-info"></div>
+      </div>
+      
+      <div class="license-question">
+        <h3>Utiliser cette licence ?</h3>
+        <div class="action-buttons">
+          <button id="useYesBtn" class="btn btn-success">Oui</button>
+          <button id="useNoBtn" class="btn btn-danger">Non</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="invalid-result" class="result invalid" style="display: none;">
+      <div class="result-icon">✗</div>
+      <h2>Licence Non Valide</h2>
+      <p id="invalid-message">Impossible de valider votre licence.</p>
+      <button id="retryBtn" class="btn" style="margin-top: 15px;">Réessayer</button>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>&copy; 2025 6Truc Services. Tous droits réservés.</p>
+  </div>
+  
+  <script src="licenseRenderer.js"></script>
+</body>
+</html> 

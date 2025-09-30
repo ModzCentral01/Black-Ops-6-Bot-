@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-View Browser</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000000;
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    #app {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .control-bar {
+      display: flex;
+      align-items: center;
+      background: linear-gradient(to right, #881337, #b91c1c);
+      height: 40px;
+      padding: 0 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      position: relative;
+    }
+    
+    .btn {
+      background-color: #e11d48;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      margin-right: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .btn:hover {
+      background-color: #f43f5e;
+    }
+    
+    .sync-btn {
+      background-color: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-left: auto;
+    }
+    
+    .sync-btn:hover {
+      background-color: #22c55e;
+    }
+    
+    #scroll-container {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      /* Cacher la barre de défilement native mais garder la fonctionnalité */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+      z-index: 10;
+    }
+    
+    #scroll-container::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+    
+    #content-size-controller {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      pointer-events: none;
+    }
+    
+    /* Style pour les indicateurs de défilement */
+    .scroll-indicator {
+      position: fixed;
+      right: 10px;
+      width: 8px;
+      border-radius: 4px;
+      z-index: 900;
+      transition: opacity 0.3s;
+    }
+    
+    .scroll-thumb {
+      background-color: rgba(225, 29, 72, 0.8);
+      position: fixed;
+      right: 10px;
+      width: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 900;
+      transition: opacity 0.3s;
+    }
+    
+    /* Styles pour la fenêtre modale de paramètres */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-backdrop.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 1rem;
+      padding: 2rem;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+    }
+    
+    .modal-backdrop.show .modal-content {
+      transform: translateY(0);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 1rem;
+    }
+    
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+      background: linear-gradient(to right, #e11d48, #f43f5e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-close:hover {
+      color: #e11d48;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    label {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .form-control {
+      background-color: rgba(30, 41, 59, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      color: white;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-control:hover, .form-control:focus {
+      border-color: #e11d48;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25);
+    }
+    
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 10px;
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 0.5rem;
+      outline: none;
+      margin: 0.5rem 0;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #e11d48;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(225, 29, 72, 0.5);
+      transition: all 0.2s ease;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      background: #f43f5e;
+    }
+    
+    .bitrate-value {
+      background: linear-gradient(to right, #e11d48, #f43f5e);
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-weight: bold;
+      display: inline-block;
+      min-width: 2rem;
+      text-align: center;
+    }
+    
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 1rem;
+    }
+    
+    .btn-cancel, .btn-save {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-cancel {
+      background: rgba(30, 41, 59, 0.8);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .btn-save {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-cancel:hover {
+      background: rgba(30, 41, 59, 1);
+    }
+    
+    .btn-save:hover {
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="control-bar">
+      <button id="reload-btn" class="btn">Reload All</button>
+      <span>Multi-View Browser</span>
+      <button id="sync-button" class="sync-btn">Synchronization</button>
+    </div>
+    
+    <div id="scroll-container">
+      <div id="content-size-controller"></div>
+    </div>
+    
+    <!-- Indicateur de défilement personnalisé -->
+    <div class="scroll-indicator scroll-thumb"></div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM loaded, initializing scroll system');
+      
+      // Check if API is available
+      if (!window.electronAPI) {
+        console.error('Error: window.electronAPI is not available!');
+        alert('Communication error with application');
+        return;
+      } else {
+        console.log('Electron API detected:', Object.keys(window.electronAPI));
+      }
+      
+      const scrollContainer = document.getElementById('scroll-container');
+      const contentController = document.getElementById('content-size-controller');
+      const scrollThumb = document.querySelector('.scroll-thumb');
+      
+      // Check that elements exist
+      if (!scrollContainer || !contentController || !scrollThumb) {
+        console.error('Error: Missing DOM elements!');
+        return;
+      }
+      
+      // Variables for scroll management
+      let isScrolling = false;
+      let scrollTimeout = null;
+      let isDraggingThumb = false;
+      let lastY = 0;
+      
+      // Handler for scroll events
+      scrollContainer.addEventListener('scroll', (event) => {
+        console.log('Scroll event detected:', scrollContainer.scrollTop);
+        
+        const scrollPos = {
+          x: scrollContainer.scrollLeft,
+          y: scrollContainer.scrollTop
+        };
+        
+        // Send scroll position to main process
+        window.electronAPI.sendScrollPosition(scrollPos);
+        
+        // Update thumb position
+        updateScrollThumbPosition();
+        
+        // Indicate that we are scrolling
+        isScrolling = true;
+        
+        // Clear previous timeout if it exists
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
+        }
+        
+        // After 200ms without scrolling, consider scrolling finished
+        scrollTimeout = setTimeout(() => {
+          isScrolling = false;
+          console.log('Scrolling finished');
+        }, 200);
+      });
+      
+      // Listen for mouse wheel events on the entire document
+      document.addEventListener('wheel', (event) => {
+        if (scrollContainer.contains(event.target)) {
+          // Allow default scroll behavior
+          return;
+        }
+        
+        // Prevent default behavior for elements outside the container
+        event.preventDefault();
+        
+        // Send event to main process
+        window.electronAPI.sendWheelScroll({
+          x: event.deltaX,
+          y: event.deltaY
+        });
+      });
+      
+      // Listen for keyboard events on the entire document
+      document.addEventListener('keydown', (event) => {
+        const navigationKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'];
+        
+        if (navigationKeys.includes(event.key)) {
+          event.preventDefault();
+          
+          // Send event to main process
+          window.electronAPI.sendKeyboardScroll({
+            key: event.key
+          });
+        }
+      });
+      
+      // Listen for events from main process
+      window.electronAPI.onSetContainerSize((size) => {
+        console.log('Container size received:', size);
+        
+        // Set container size to allow scrolling
+        contentController.style.height = `${size.height}px`;
+        console.log(`Controller height set to ${size.height}px`);
+        
+        // Update scroll thumb dimensions
+        updateScrollThumbDimensions();
+      });
+      
+      // Function to update thumb position
+      function updateScrollThumbPosition() {
+        if (!scrollContainer || !scrollThumb) return;
+        
+        const scrollPercentage = scrollContainer.scrollTop / 
+          (scrollContainer.scrollHeight - scrollContainer.clientHeight);
+        
+        const viewportHeight = window.innerHeight - 50;  // Height minus control bar
+        const thumbHeight = scrollThumb.clientHeight;
+        
+        const maxTop = viewportHeight - thumbHeight;
+        const thumbTop = scrollPercentage * maxTop;
+        
+        scrollThumb.style.top = `${50 + thumbTop}px`;  // 50px for control bar
+      }
+      
+      // Function to update thumb dimensions
+      function updateScrollThumbDimensions() {
+        if (!scrollContainer || !scrollThumb) return;
+        
+        const viewportHeight = window.innerHeight - 50;  // Height minus control bar
+        const viewportRatio = scrollContainer.clientHeight / scrollContainer.scrollHeight;
+        const thumbHeight = Math.max(50, viewportHeight * viewportRatio);
+        
+        scrollThumb.style.height = `${thumbHeight}px`;
+        
+        // Hide thumb if all content is visible
+        if (viewportRatio >= 1) {
+          scrollThumb.style.opacity = '0';
+        } else {
+          scrollThumb.style.opacity = '1';
+        }
+        
+        updateScrollThumbPosition();
+      }
+      
+      // Handle click on scroll track (now directly on position)
+      scrollThumb.addEventListener('dblclick', (event) => {
+        const viewportHeight = window.innerHeight - 50;
+        const clickPositionY = event.clientY - 50;  // 50px for control bar
+        
+        const thumbHeight = scrollThumb.clientHeight;
+        
+        const scrollPercentage = clickPositionY / viewportHeight;
+        
+        // Calculate new scroll position
+        const newScrollTop = scrollPercentage * 
+          (scrollContainer.scrollHeight - scrollContainer.clientHeight);
+        
+        // Apply new position
+        scrollContainer.scrollTop = newScrollTop;
+      });
+      
+      // Handle thumb drag and drop
+      scrollThumb.addEventListener('mousedown', (event) => {
+        isDraggingThumb = true;
+        lastY = event.clientY;
+        
+        // Prevent text selection during dragging
+        document.body.style.userSelect = 'none';
+      });
+      
+      document.addEventListener('mousemove', (event) => {
+        if (!isDraggingThumb) return;
+        
+        const deltaY = event.clientY - lastY;
+        lastY = event.clientY;
+        
+        const viewportHeight = window.innerHeight - 50; // Height minus control bar
+        const thumbHeight = scrollThumb.clientHeight;
+        
+        // Calculate movement as percentage
+        const movePercentage = deltaY / (viewportHeight - thumbHeight);
+        
+        // Calculate scroll delta
+        const scrollDelta = movePercentage * 
+          (scrollContainer.scrollHeight - scrollContainer.clientHeight);
+        
+        // Apply scrolling
+        scrollContainer.scrollTop += scrollDelta;
+      });
+      
+      document.addEventListener('mouseup', () => {
+        if (isDraggingThumb) {
+          isDraggingThumb = false;
+          document.body.style.userSelect = '';
+        }
+      });
+      
+      // Handler for reload button
+      document.getElementById('reload-btn').addEventListener('click', () => {
+        // Reload all views
+        if (window.electronAPI && window.electronAPI.reloadAllViews) {
+          window.electronAPI.reloadAllViews();
+        }
+      });
+      
+      // Handler for synchronization button
+      document.getElementById('sync-button').addEventListener('click', () => {
+        if (window.electronAPI && window.electronAPI.openSyncPanel) {
+          window.electronAPI.openSyncPanel();
+        }
+      });
+      
+      // Initialize thumb dimensions on load
+      window.addEventListener('resize', updateScrollThumbDimensions);
+    });
+  </script>
+</body>
+</html> 

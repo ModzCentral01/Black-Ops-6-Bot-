@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synchronization Panel</title>
+  <style>
+    :root {
+      --primary: #e11d48;
+      --primary-dark: #be123c;
+      --secondary: #f43f5e;
+      --dark: #0f0f0f;
+      --light: #f8fafc;
+      --host-color: #f97316;
+      --player-color: #3b82f6;
+      --selected-color: #22c55e;
+      --controlbar-gradient-start: #881337;
+      --controlbar-gradient-end: #b91c1c;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--dark);
+      color: var(--light);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin: 0;
+      color: var(--light);
+      padding: 10px 0;
+      background: linear-gradient(to right, var(--controlbar-gradient-start), var(--controlbar-gradient-end));
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .sync-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    
+    .keyboard-sync-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .btn-keyboard {
+      padding: 8px 15px;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      color: white;
+      font-weight: bold;
+      background-color: #4f46e5;
+    }
+    
+    .btn-keyboard.active {
+      background-color: #4338ca;
+      box-shadow: 0 0 10px rgba(67, 56, 202, 0.5);
+    }
+    
+    .quick-actions {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    
+    .btn-quick {
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .btn-host {
+      background-color: var(--host-color);
+    }
+    
+    .btn-player {
+      background-color: var(--player-color);
+    }
+    
+    .btn-all {
+      background-color: var(--selected-color);
+    }
+    
+    .btn-desync {
+      background-color: #888;
+    }
+    
+    .views-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .team-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      padding: 5px;
+      margin-bottom: 2px;
+    }
+    
+    .team-views {
+      display: grid;
+      grid-template-columns: repeat(var(--views-per-row, 4), 1fr);
+      gap: 5px;
+      flex: 1;
+    }
+    
+    .team-action {
+      padding: 5px 10px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      min-width: 60px;
+      font-size: 12px;
+    }
+    
+    .team-action.desync {
+      background-color: #888;
+    }
+    
+    .team-label {
+      min-width: 50px;
+      font-weight: bold;
+      color: var(--light);
+      padding: 0 5px;
+      text-align: center;
+      font-size: 12px;
+    }
+    
+    .view-tile {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      position: relative;
+      width: 30px;
+      height: 30px;
+      margin: 0 auto;
+      font-size: 12px;
+    }
+    
+    .view-tile.host {
+      background-color: rgba(249, 115, 22, 0.2);
+      border-color: var(--host-color);
+    }
+    
+    .view-tile.player {
+      background-color: rgba(59, 130, 246, 0.2);
+      border-color: var(--player-color);
+    }
+    
+    .view-tile.selected {
+      border-color: var(--selected-color);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+    
+    .view-synced {
+      position: absolute;
+      right: -3px;
+      top: -3px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--selected-color);
+      display: none;
+    }
+    
+    .view-tile.synced .view-synced {
+      display: block;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .btn:hover {
+      background-color: var(--secondary);
+    }
+    
+    .btn-secondary {
+      background-color: #333;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #555;
+    }
+    
+    .sync-status {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #888;
+    }
+    
+    .keyboard-preview {
+      padding: 10px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background-color: #333;
+      color: var(--light);
+      font-size: 14px;
+      flex: 1;
+      min-height: 20px;
+      max-width: 400px;
+    }
+    
+    .key-pressed {
+      display: inline-block;
+      padding: 3px 8px;
+      margin: 2px;
+      border-radius: 4px;
+      background-color: #4f46e5;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="sync-container">
+    <h1>Synchronization Panel</h1>
+    
+    <div class="keyboard-sync-section">
+      <button id="sync-keyboard" class="btn-keyboard">Keyboard Sync</button>
+      <div id="keyboard-preview" class="keyboard-preview">Press some keys...</div>
+    </div>
+    
+    <div class="quick-actions">
+      <button id="sync-hosts" class="btn-quick btn-host">Sync Host</button>
+      <button id="sync-players" class="btn-quick btn-player">Sync Player</button>
+      <button id="sync-all" class="btn-quick btn-all">Sync All</button>
+      <button id="desync-all" class="btn-quick btn-desync">Desync All</button>
+    </div>
+    
+    <div id="views-container" class="views-container">
+      <!-- Teams will be generated here -->
+    </div>
+    
+    <div class="sync-status" id="sync-status">
+      Click on a view to synchronize/desynchronize it
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let viewsData = { views: [], viewsPerRow: 4 }; // Default value of 4
+      
+      // Function to group views by team (based on rows)
+      function groupViewsByTeam(views) {
+        const teams = {};
+        const viewsPerRow = viewsData.viewsPerRow; // Use dynamic value
+        
+        console.log("Views to group:", views.map(v => ({index: v.index, viewIndex: v.viewIndex, number: v.number})));
+        
+        // Use original order of views as defined in viewsData
+        views.forEach((view) => {
+          // Use index if viewIndex doesn't exist, or number-1 as last resort
+          const viewPosition = typeof view.viewIndex !== 'undefined' ? view.viewIndex : 
+                              (typeof view.index !== 'undefined' ? view.index : view.number - 1);
+          
+          // Determine row number (0, 1, 2, etc.)
+          const rowNumber = Math.floor(viewPosition / viewsPerRow);
+          const teamId = `row_${rowNumber}`;
+          
+          if (!teams[teamId]) {
+            teams[teamId] = [];
+          }
+          
+          teams[teamId].push(view);
+          console.log(`View ${view.number} (index ${viewPosition}) -> Row ${rowNumber + 1}`);
+        });
+        
+        // Sort views in each team for consistent display
+        Object.keys(teams).forEach(teamId => {
+          // Try to sort by viewIndex if available, otherwise by index, otherwise by number
+          teams[teamId].sort((a, b) => {
+            if (typeof a.viewIndex !== 'undefined' && typeof b.viewIndex !== 'undefined') {
+              return a.viewIndex - b.viewIndex;
+            } else if (typeof a.index !== 'undefined' && typeof b.index !== 'undefined') {
+              return a.index - b.index;
+            } else {
+              return a.number - b.number;
+            }
+          });
+          
+          const rowNumber = parseInt(teamId.split('_')[1]) || 0;
+          console.log(`Row ${rowNumber + 1} contains ${teams[teamId].length} views: ${teams[teamId].map(v => v.number).join(', ')}`);
+        });
+        
+        return teams;
+      }
+      
+      // Function to render views grouped by team
+      function renderTeamViews(viewsData) {
+        const container = document.getElementById('views-container');
+        container.innerHTML = '';
+        
+        const teams = groupViewsByTeam(viewsData.views);
+        
+        // Sort teams by row number
+        const sortedTeamIds = Object.keys(teams).sort((a, b) => {
+          const rowA = parseInt(a.split('_')[1]) || 0;
+          const rowB = parseInt(b.split('_')[1]) || 0;
+          return rowA - rowB;
+        });
+        
+        sortedTeamIds.forEach(teamId => {
+          const teamViews = teams[teamId];
+          const rowNumber = parseInt(teamId.split('_')[1]) || 0;
+          
+          const teamRow = document.createElement('div');
+          teamRow.className = 'team-row';
+          
+          // Add team label (rowNumber + 1 to start at Row 1)
+          const teamLabel = document.createElement('div');
+          teamLabel.className = 'team-label';
+          teamLabel.textContent = `Team ${rowNumber + 1}`;
+          teamRow.appendChild(teamLabel);
+          
+          const teamViewsGrid = document.createElement('div');
+          teamViewsGrid.className = 'team-views';
+          
+          // Check if all team members are synchronized
+          const allSynced = teamViews.every(view => view.isSynchronized);
+          
+          // Display views in order of their index
+          teamViews.forEach(view => {
+            const tile = createViewTile(view);
+            teamViewsGrid.appendChild(tile);
+          });
+          
+          const syncTeamButton = document.createElement('button');
+          syncTeamButton.className = `team-action ${allSynced ? 'desync' : ''}`;
+          syncTeamButton.textContent = allSynced ? 'Desync Row' : 'Sync Row';
+          syncTeamButton.dataset.teamId = teamId;
+          syncTeamButton.addEventListener('click', () => {
+            toggleTeamSync(teamId, !allSynced);
+          });
+          
+          teamRow.appendChild(teamViewsGrid);
+          teamRow.appendChild(syncTeamButton);
+          
+          container.appendChild(teamRow);
+        });
+      }
+      
+      // Fonction pour créer une tuile de vue
+      function createViewTile(view) {
+        const tile = document.createElement('div');
+        tile.className = `view-tile ${view.type}`;
+        if (view.isSynchronized) {
+          tile.classList.add('synced');
+        }
+        
+        tile.dataset.index = view.index;
+        
+        // Texte directement dans le tile sans éléments enfants supplémentaires
+        tile.textContent = `${view.type === 'host' ? 'H' : 'P'}${view.number}`;
+        
+        const syncedIndicator = document.createElement('div');
+        syncedIndicator.className = 'view-synced';
+        
+        tile.appendChild(syncedIndicator);
+        
+        tile.addEventListener('click', () => {
+          toggleViewSync(view.index);
+        });
+        
+        return tile;
+      }
+      
+      // Function to synchronize/desynchronize a view immediately
+      function toggleViewSync(index) {
+        // Get current state of the view
+        const view = viewsData.views.find(v => v.index === index);
+        if (!view) return;
+        
+        // If view is already synchronized, desynchronize it
+        // If not, synchronize it
+        if (view.isSynchronized) {
+          // Desynchronize this view (synchronize all other synchronized views)
+          const otherIndices = viewsData.views
+            .filter(v => v.index !== index && v.isSynchronized)
+            .map(v => v.index);
+          
+          if (window.syncAPI) {
+            window.syncAPI.synchronizeViews(otherIndices);
+          }
+        } else {
+          // Synchronize this view with already synchronized views
+          const indicesToSync = [...viewsData.views
+            .filter(v => v.isSynchronized)
+            .map(v => v.index), index];
+          
+          if (window.syncAPI) {
+            window.syncAPI.synchronizeViews(indicesToSync);
+          }
+        }
+        
+        // Update status
+        updateSyncStatus();
+      }
+      
+      // Fonction pour synchroniser/désynchroniser une équipe entière
+      function toggleTeamSync(teamId, shouldSync) {
+        const teams = groupViewsByTeam(viewsData.views);
+        const teamViews = teams[teamId] || [];
+        
+        if (teamViews.length === 0) return;
+        
+        const teamIndices = teamViews.map(view => view.index);
+        
+        if (shouldSync) {
+          // Synchroniser cette équipe tout en conservant les autres vues synchronisées
+          const currentlySyncedIndices = viewsData.views
+            .filter(view => view.isSynchronized && !teamIndices.includes(view.index))
+            .map(view => view.index);
+          
+          // Fusionner les indices actuellement synchronisés avec ceux de l'équipe
+          const allIndicesToSync = [...currentlySyncedIndices, ...teamIndices];
+          
+          if (window.syncAPI) {
+            window.syncAPI.synchronizeViews(allIndicesToSync);
+          }
+        } else {
+          // Désynchroniser uniquement cette équipe
+          // On garde toutes les autres vues synchronisées telles qu'elles sont
+          const otherSyncedIndices = viewsData.views
+            .filter(view => !teamIndices.includes(view.index) && view.isSynchronized)
+            .map(view => view.index);
+          
+          if (window.syncAPI) {
+            window.syncAPI.synchronizeViews(otherSyncedIndices);
+          }
+        }
+      }
+      
+      // Update synchronization status
+      function updateSyncStatus() {
+        const syncedCount = viewsData.views.filter(view => view.isSynchronized).length;
+        const statusEl = document.getElementById('sync-status');
+        
+        if (syncedCount === 0) {
+          statusEl.textContent = 'No synchronized views';
+        } else {
+          statusEl.textContent = `${syncedCount} view(s) synchronized`;
+        }
+      }
+      
+      // Variables pour le mode clavier synchronisé
+      let keyboardSyncActive = false;
+      let activeKeys = new Set();
+      
+      // Fonction pour synchroniser un type spécifique (host, player, all)
+      function syncByType(type) {
+        let indicesToSync = [];
+        
+        if (type === 'host') {
+          indicesToSync = viewsData.views
+            .filter(view => view.type === 'host')
+            .map(view => view.index);
+        } else if (type === 'player') {
+          indicesToSync = viewsData.views
+            .filter(view => view.type === 'player')
+            .map(view => view.index);
+        } else if (type === 'all') {
+          indicesToSync = viewsData.views
+            .map(view => view.index);
+        } else if (type === 'none') {
+          indicesToSync = []; // Désynchroniser tout
+        }
+        
+        if (window.syncAPI && type !== 'none') {
+          window.syncAPI.synchronizeViews(indicesToSync);
+        } else if (window.syncAPI && type === 'none') {
+          window.syncAPI.synchronizeViews([]);
+        }
+      }
+      
+      // Gestionnaire d'événements de clavier pour capturer les touches
+      function handleKeyDown(event) {
+        if (!keyboardSyncActive) return;
+        
+        // Ignorer les événements répétés pour éviter les doublons
+        if (event.repeat) return;
+        
+        // Obtenir le nom de la touche
+        const key = event.key;
+        
+        // Ajouter à l'ensemble des touches actives
+        activeKeys.add(key);
+        
+        // Mettre à jour l'aperçu des touches
+        updateKeyboardPreview();
+        
+        // Envoyer l'événement aux vues synchronisées via l'API
+        if (window.syncAPI) {
+          // Envoyer toutes les touches de la même manière, sans traitement spécial
+          window.syncAPI.sendKeyboardEvent({
+            type: 'keydown',
+            key: key
+          });
+        }
+        
+        // Empêcher le comportement par défaut sauf pour Escape
+        if (!event.target.matches('input, textarea') && key !== 'Escape') {
+          event.preventDefault();
+        }
+      }
+      
+      function handleKeyUp(event) {
+        if (!keyboardSyncActive) return;
+        
+        // Obtenir le nom de la touche
+        const key = event.key;
+        
+        console.log('Keyup reçu pour:', key);
+        
+        // Supprimer de l'ensemble des touches actives
+        activeKeys.delete(key);
+        
+        // Si Shift est relâché, vérifier s'il y a des touches de mouvement actives
+        // et les relâcher également pour éviter quelles ne restent bloquées
+        if (key === 'Shift') {
+          // Ces touches sont souvent utilisées avec Shift pour courir
+          const movementKeys = ['z', 'q', 's', 'd', 'Z', 'Q', 'S', 'D', 'w', 'a', 'W', 'A'];
+          
+          movementKeys.forEach(moveKey => {
+            if (activeKeys.has(moveKey)) {
+              console.log('Relâchement forcé de la touche de mouvement:', moveKey);
+              activeKeys.delete(moveKey);
+              
+              // Envoyer un événement keyup pour cette touche
+              if (window.syncAPI) {
+                window.syncAPI.sendKeyboardEvent({
+                  type: 'keyup',
+                  key: moveKey
+                });
+              }
+            }
+          });
+        }
+        
+        // Mettre à jour l'aperçu des touches
+        updateKeyboardPreview();
+        
+        // Envoyer l'événement aux vues synchronisées via l'API
+        if (window.syncAPI) {
+          // Envoyer toutes les touches de la même manière, sans traitement spécial
+          window.syncAPI.sendKeyboardEvent({
+            type: 'keyup',
+            key: key
+          });
+        }
+        
+        // Empêcher le comportement par défaut sauf pour Escape
+        if (!event.target.matches('input, textarea') && key !== 'Escape') {
+          event.preventDefault();
+        }
+      }
+      
+      // Mettre à jour l'aperçu visuel des touches actives
+      function updateKeyboardPreview() {
+        const previewEl = document.getElementById('keyboard-preview');
+        
+        if (activeKeys.size === 0) {
+          previewEl.textContent = 'Press some keys...';
+        } else {
+          previewEl.innerHTML = '';
+          
+          // Create element for each active key
+          activeKeys.forEach(key => {
+            const keyElement = document.createElement('span');
+            keyElement.className = 'key-pressed';
+            keyElement.textContent = key === ' ' ? 'Space' : key;
+            previewEl.appendChild(keyElement);
+          });
+        }
+      }
+      
+      // Fonction pour basculer le mode de synchronisation clavier
+      function toggleKeyboardSync() {
+        keyboardSyncActive = !keyboardSyncActive;
+        
+        const keyboardButton = document.getElementById('sync-keyboard');
+        const previewEl = document.getElementById('keyboard-preview');
+        
+        if (keyboardSyncActive) {
+          // Enable keyboard synchronization
+          keyboardButton.classList.add('active');
+          keyboardButton.textContent = 'Keyboard Active';
+          previewEl.textContent = 'Press some keys...';
+          
+          // Add event listeners to document
+          document.addEventListener('keydown', handleKeyDown);
+          document.addEventListener('keyup', handleKeyUp);
+        } else {
+          // Disable keyboard synchronization
+          keyboardButton.classList.remove('active');
+          keyboardButton.textContent = 'Keyboard Sync';
+          previewEl.textContent = 'Press some keys...';
+          
+          // Remove event listeners
+          document.removeEventListener('keydown', handleKeyDown);
+          document.removeEventListener('keyup', handleKeyUp);
+          
+          // Relâcher toutes les touches actives
+          if (activeKeys.size > 0) {
+            if (window.syncAPI) {
+              activeKeys.forEach(key => {
+                window.syncAPI.sendKeyboardEvent({
+                  type: 'keyup',
+                  key: key
+                });
+              });
+            }
+            activeKeys.clear();
+          }
+        }
+      }
+      
+      // Handlers pour les boutons de synchronisation rapide
+      document.getElementById('sync-hosts').addEventListener('click', () => {
+        syncByType('host');
+      });
+      
+      document.getElementById('sync-players').addEventListener('click', () => {
+        syncByType('player');
+      });
+      
+      document.getElementById('sync-all').addEventListener('click', () => {
+        syncByType('all');
+      });
+      
+      document.getElementById('desync-all').addEventListener('click', () => {
+        syncByType('none');
+      });
+      
+      // Handler pour le bouton de synchronisation du clavier
+      document.getElementById('sync-keyboard').addEventListener('click', toggleKeyboardSync);
+      
+      // Écouter les mises à jour de l'état des vues
+      if (window.syncAPI) {
+        window.syncAPI.onViewsUpdate(data => {
+          viewsData = data;
+          // Mettre à jour la variable CSS pour le nombre de vues par ligne
+          document.documentElement.style.setProperty('--views-per-row', data.viewsPerRow || 4);
+          renderTeamViews(viewsData);
+          updateSyncStatus();
+        });
+        
+        // Demander l'état initial des vues
+        window.syncAPI.requestViewsState();
+      }
+    });
+  </script>
+</body>
+</html> 
