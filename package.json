@@ -1,0 +1,19 @@
+{
+  "name": "6truc-botlobby-manager",
+  "version": "1.0.0",
+  "description": "Electron application with multiple BrowserViews",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [
+    "electron",
+    "browserviews",
+    "multi-view"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "29.0.1"
+  }
+}
